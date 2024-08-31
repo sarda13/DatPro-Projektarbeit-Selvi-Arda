@@ -115,7 +115,9 @@ def worker_arda(id, secret, q_request, q_reply):
     
     q_request.put(('SET_ACCELERATION', a, secret, id)):
     reply_a = q_reply.get()
-    a = np.array([])
+    a = reply_a[1]
+    if a is None:
+        pass
 
 #velocity        
 #accileration
