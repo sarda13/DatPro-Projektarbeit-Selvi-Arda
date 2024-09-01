@@ -91,11 +91,56 @@ def worker_arda(id, secret, q_request, q_reply):
     N = reply_y[1]
     for n in range(0, N): 
         q_request.put(('GET_PUCK', n, id))
-            if q_reply.get == None:
-                return False
-            elif n == id:
-                continue
+        reply = q_reply.get()
+        puck2 = reply[1]
+        if puck2.get_id() == id:
+            meine_nummer = n
+            break
 
+    while True:
+        l1 =[]
+        l1.clear()
+        q_request.put(('GET_PUCK', meine_nummer, id))
+        mein_puck = q_reply.get()[1]
+        meine_position = mein_puck.get_position()
+        meine_geschwindikeit = mein_puck.get_velocity()
+        meine_beschleunigung = mein_puck.get_acceleration()
+        for i in range(0, N):
+            q_request.put(('GET_PUCK', i, id))
+            anderer_puck = q_reply.get()[1]
+            andere_position = anderer_puck.get_position()
+            andere_geschwindigkeit = anderer_puck.get_velocity()
+            t = - np.dot(((andrer_position-meine_position) , (andere_geschwindigkeit-meine_geschwindigkeit))/ np.dot((andere_geschwindigkeit-meine_geschwindigkeit), (andere_geschwindigkeit-meine_geschwindigkeit)))
+            l1.append(t)
+            
+            
+            
+            
+            if mein_puck.is_alive():
+                return True
+        
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     #Boxgrenzen anfragen
     q_request.put(('GET BOX', id))
     box_grenzen = q_reply.get(('GET_BOX', box))
@@ -142,7 +187,7 @@ r1 = np.array([1, 1])
 r2 = np.array([0,0])
 d**2(r1, r2) = (r2-r1 + v2-v1 * t)**2
 #(np.diff(d**2 (r1, r2)) = 0)
-t= - ((r2-r1) * (v2-v1)/ (v2-v1)**2)
+t= - ((andrer_position-meine_position) * (andere_geschwindigkeit-meine_geschwindigkeit)/ (andere_geschwindigkeit-meine_geschwindigkeit)**2)
 if dot(r1_vector, r2_vector) == 0:
     return True
 (v2-v1) = a * (t2-t1)
@@ -184,8 +229,5 @@ for vector_distance
 #s = MPI.Status()
 #while True
 #get_position
-
-if __name__ == '__main__':
-        main()
 
 unittest.main()
