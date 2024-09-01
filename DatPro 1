@@ -85,7 +85,7 @@ def worker_arda(id, secret, q_request, q_reply):
     #Namen setzen
     q_request.put(('SET_NAME', 'Arda', secret, id))
     reply_x = q_reply.get()
-    #
+    #Abfrage der Puckanzahl
     q_request.put(('GET_SIZE', id))
     reply_y = q_reply.get()
     N = reply_y[1]
@@ -96,6 +96,7 @@ def worker_arda(id, secret, q_request, q_reply):
             elif n == id:
                 continue
 
+    #Boxgrenzen anfragen
     q_request.put(('GET BOX', id))
     box_grenzen = q_reply.get(('GET_BOX', box))
     box_x = box.get_x_limits()
@@ -110,6 +111,11 @@ def worker_arda(id, secret, q_request, q_reply):
     a_vector = reply_a[1]
     if a_vector is None:
         raise Error
+
+    if position[0] < x_limits[0] + 1:
+        acceleration[0] =   A_MAX
+    elif position[0] > x_limits[1] - 1:
+        acceleration[0] = - A_MAX
     
         
 
@@ -140,18 +146,16 @@ t= - ((r2-r1) * (v2-v1)/ (v2-v1)**2)
 if dot(r1_vector, r2_vector) == 0:
     return True
 (v2-v1) = a * (t2-t1)
-l1 = []
+#l1 = []
 
 v_puck
 
 
-
-if position[0] < x_limits[0] + 1:
-    acceleration[0] =   A_MAX
-elif position[0] > x_limits[1] - 1:
-    acceleration[0] = - A_MAX
     
-is_alive():
+if puck is is_alive():
+    return True
+else:
+    return False
 get_id()
 get_time()
 get_position()
@@ -163,11 +167,10 @@ get_points()
 #Radius bei Reflexion mitberücksichtigen
 
 
-for v_puck in range(10, 42):
-    if v_puck in range(10, 42):
-        return True
-    else:
-        return False
+if v_puck in range(V_MIN, V_MAX):
+    return True and q_reply.get_velocity()
+else:
+    return False
 
 for vector_distance
 
@@ -178,9 +181,9 @@ for vector_distance
 
     
         
-s = MPI.Status()
-while True
-get_position
+#s = MPI.Status()
+#while True
+#get_position
 
 if __name__ == '__main__':
         main()
