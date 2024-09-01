@@ -91,9 +91,9 @@ def worker_arda(id, secret, q_request, q_reply):
     N = reply_y[1]
     for n in range(0, N): 
         q_request.put(('GET_PUCK', n, id))
-        reply = q_reply.get()
-        puck2 = reply[1]
-        if puck2.get_id() == id:
+        reply_x = q_reply.get()
+        puck_y = reply_x[1]
+        if puck_y.get_id() == id:
             meine_nummer = n
             break
 
@@ -110,7 +110,7 @@ def worker_arda(id, secret, q_request, q_reply):
             anderer_puck = q_reply.get()[1]
             andere_position = anderer_puck.get_position()
             andere_geschwindigkeit = anderer_puck.get_velocity()
-            t = - np.dot(((andrer_position-meine_position) , (andere_geschwindigkeit-meine_geschwindigkeit))/ np.dot((andere_geschwindigkeit-meine_geschwindigkeit), (andere_geschwindigkeit-meine_geschwindigkeit)))
+            t = - np.dot((andere_position - meine_position) , (andere_geschwindigkeit - meine_geschwindigkeit))/ np.dot((andere_geschwindigkeit - meine_geschwindigkeit), (andere_geschwindigkeit - meine_geschwindigkeit)))
             l1.append(t)
             
             
@@ -187,11 +187,10 @@ r1 = np.array([1, 1])
 r2 = np.array([0,0])
 d**2(r1, r2) = (r2-r1 + v2-v1 * t)**2
 #(np.diff(d**2 (r1, r2)) = 0)
-t= - ((andrer_position-meine_position) * (andere_geschwindigkeit-meine_geschwindigkeit)/ (andere_geschwindigkeit-meine_geschwindigkeit)**2)
+t= - ((andere_position - meine_position) * (andere_geschwindigkeit - meine_geschwindigkeit)/ (andere_geschwindigkeit - meine_geschwindigkeit)**2)
 if dot(r1_vector, r2_vector) == 0:
     return True
-(v2-v1) = a * (t2-t1)
-#l1 = []
+(andere_geschwindigkeit-meine_geschwindigkeit) = a * (t2-t1)
 
 v_puck
 
@@ -220,7 +219,7 @@ else:
 for vector_distance
 
 
-
+#nicht existieren;  puck = None
 
     
 
