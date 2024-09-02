@@ -89,15 +89,16 @@ def worker_arda(id, secret, q_request, q_reply):
     q_request.put(('GET_SIZE', id))
     reply_y = q_reply.get()
     N = reply_y[1]
-    for n in range(0, N): 
+    #for n in range(0, N): 
         q_request.put(('GET_PUCK', n, id))
-        reply_x = q_reply.get()
-        puck_y = reply_x[1]
+        reply_puck = q_reply.get()
+        puck_z = reply_puck[1]
         if puck_y.get_id() == id:
             meine_nummer = n
-            break
+            break #n ist id
 
     while True:
+        R = 1
         l1 =[]
         l1.clear()
         q_request.put(('GET_PUCK', meine_nummer, id))
@@ -105,18 +106,74 @@ def worker_arda(id, secret, q_request, q_reply):
         meine_position = mein_puck.get_position()
         meine_geschwindikeit = mein_puck.get_velocity()
         meine_beschleunigung = mein_puck.get_acceleration()
+        
         for i in range(0, N):
             q_request.put(('GET_PUCK', i, id))
             anderer_puck = q_reply.get()[1]
             andere_position = anderer_puck.get_position()
             andere_geschwindigkeit = anderer_puck.get_velocity()
-            t = - np.dot((andere_position - meine_position) , (andere_geschwindigkeit - meine_geschwindigkeit))/ np.dot((andere_geschwindigkeit - meine_geschwindigkeit), (andere_geschwindigkeit - meine_geschwindigkeit)))
-            l1.append(t)
+            t_ca = - np.dot((andere_position - meine_position) , (andere_geschwindigkeit - meine_geschwindigkeit))/ np.dot((andere_geschwindigkeit - meine_geschwindigkeit), (andere_geschwindigkeit - meine_geschwindigkeit)))
+            r_ca = (andere_position - meine_position) - (andere_geschwindigkeit - meine_geschwindigkeit) * t_ca) #vektor
+            a = 2 * (2*R - np.linalg.norm(r_ca)) / (t_ca * t_ca) #skalar
+            if a >= A_MAX:
+                a = A_MAX
+            if t_ca >= 0 or np.linalg.norm(r_ca) >= 10:
+                l1.append((t_ca, r_ca, a))
+
+#geschwindigkeitskontrolle            
+#mit node sortieren; die pucks, die am relevantesten/ gefährlichsten sind           #node oder sort()
+class Node:
+    def __init__(self, key, value):
+        self.next = None
+        self.key = key
+        self.value = value
+
+    def __str__(self):
+        return f"Node[{self.key}]={self.value}"
+    
+    def retrieve(self, key):
+        node = self.kleinster_abstand
+        while node.next != None:
+            node = node.next
+            if node.key == key:
+                return node.value
+            raise KeyError
+
+    def insert(self, key_loc, key, value):
+        new_node = Node(key, value)
+        if key_loc == None:
+            new_node.next = self.kleinster_abstand
+            self.kleinster_abstand = new_node
+            return
+
+        node = self.kleinster_abstand
+        while node.next != None:
+            node = node.next
+            if node.key == key_loc:
+                new_node.next = node.next
+                node.next = new_node
+                return
+            raise KeyError
+
+q_request.put(('GET_PUCK', meine_nummer, id))
+        mein_puck_a = q_reply.get()[1]
+        v_geschwindikeit = mein_puck_a.get_velocity()
+a_beschleunigung = 10 * v_geschwindigkeit / np.linalg.norm(v_geschwindigkeit) 
+if v_puck == V_MIN + 5:
+    q_request.put(('SET_ACCELERATION', a_beschleunigung, secret, id))
+    reply_a = q_reply.get()
+if v_puck == V_MAX - 5:       
+    q_request.put(('SET_ACCELERATION', - a_beschleunigung, secret, id))
+    reply_aa = q_reply.get()
+q_request.put(('SET_ACCELERATION', np.array(0), secret, id))
+reply_aaa = q_reply.get()
             
-            
-            
-            
-            if mein_puck.is_alive():
+
+
+
+
+
+if mein_puck.is_alive():
                 return True
         
     
@@ -169,6 +226,8 @@ def worker_arda(id, secret, q_request, q_reply):
 #important pucks
 #worker endless loop
 #prioritization
+
+#beschleunigung reseten
 
 
 r = route
