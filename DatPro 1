@@ -90,12 +90,12 @@ def worker_arda(id, secret, q_request, q_reply):
     reply_y = q_reply.get()
     N = reply_y[1]
     #for n in range(0, N): 
-        q_request.put(('GET_PUCK', n, id))
-        reply_puck = q_reply.get()
-        puck_z = reply_puck[1]
-        if puck_y.get_id() == id:
-            meine_nummer = n
-            break #n ist id
+    q_request.put(('GET_PUCK', n, id))
+    reply_puck = q_reply.get()
+    puck_z = reply_puck[1]
+    if puck_y.get_id() == id:
+        meine_nummer = n
+        break #n ist id
 
     while True:
         R = 1
@@ -112,13 +112,14 @@ def worker_arda(id, secret, q_request, q_reply):
             anderer_puck = q_reply.get()[1]
             andere_position = anderer_puck.get_position()
             andere_geschwindigkeit = anderer_puck.get_velocity()
-            t_ca = - np.dot((andere_position - meine_position) , (andere_geschwindigkeit - meine_geschwindigkeit))/ np.dot((andere_geschwindigkeit - meine_geschwindigkeit), (andere_geschwindigkeit - meine_geschwindigkeit)))
-            r_ca = (andere_position - meine_position) - (andere_geschwindigkeit - meine_geschwindigkeit) * t_ca) #vektor
+            t_ca = - np.dot((andere_position - meine_position) , (andere_geschwindigkeit - meine_geschwindigkeit))/ np.dot((andere_geschwindigkeit - meine_geschwindigkeit), (andere_geschwindigkeit - meine_geschwindigkeit))
+            r_ca = (andere_position - meine_position) - (andere_geschwindigkeit - meine_geschwindigkeit) * (t_ca) #vektor
             a = 2 * (2*R - np.linalg.norm(r_ca)) / (t_ca * t_ca) #skalar
             if a >= A_MAX:
                 a = A_MAX
             if t_ca >= 0 or np.linalg.norm(r_ca) >= 10:
                 l1.append((t_ca, r_ca, a))
+                l1.sorted((l1, key_t = lambda item: item[0]))
 
 #geschwindigkeitskontrolle            
 #mit node sortieren; die pucks, die am relevantesten/ gefährlichsten sind           #node oder sort()
@@ -155,26 +156,26 @@ class Node:
                 return
             raise KeyError
 
-q_request.put(('GET_PUCK', meine_nummer, id))
-        mein_puck_a = q_reply.get()[1]
-        v_geschwindikeit = mein_puck_a.get_velocity()
-a_beschleunigung = 10 * v_geschwindigkeit / np.linalg.norm(v_geschwindigkeit) 
-if v_puck == V_MIN + 5:
-    q_request.put(('SET_ACCELERATION', a_beschleunigung, secret, id))
-    reply_a = q_reply.get()
-if v_puck == V_MAX - 5:       
-    q_request.put(('SET_ACCELERATION', - a_beschleunigung, secret, id))
-    reply_aa = q_reply.get()
-q_request.put(('SET_ACCELERATION', np.array(0), secret, id))
-reply_aaa = q_reply.get()
+    q_request.put(('GET_PUCK', meine_nummer, id))
+            mein_puck_a = q_reply.get()[1]
+            v_geschwindikeit = mein_puck_a.get_velocity()
+    a_beschleunigung = 10 * v_geschwindigkeit / np.linalg.norm(v_geschwindigkeit) 
+    if v_puck == V_MIN + 5:
+        q_request.put(('SET_ACCELERATION', a_beschleunigung, secret, id))
+        reply_a = q_reply.get()
+    if v_puck == V_MAX - 5:       
+        q_request.put(('SET_ACCELERATION', - a_beschleunigung, secret, id))
+        reply_aa = q_reply.get()
+    q_request.put(('SET_ACCELERATION', np.array(0), secret, id))
+    reply_aaa = q_reply.get()
             
 
 
 
 
 
-if mein_puck.is_alive():
-                return True
+    if mein_puck.is_alive():
+                    return True
         
     
     
@@ -213,11 +214,6 @@ if mein_puck.is_alive():
     a_vector = reply_a[1]
     if a_vector is None:
         raise Error
-
-    if position[0] < x_limits[0] + 1:
-        acceleration[0] =   A_MAX
-    elif position[0] > x_limits[1] - 1:
-        acceleration[0] = - A_MAX
     
         
 
