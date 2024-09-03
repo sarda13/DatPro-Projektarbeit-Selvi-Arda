@@ -1,33 +1,11 @@
-import pygame
+#import pygame as pg
 import multiprocessing as mp
 import queue
 import math
 import time
 import numpy as np
-from mpi4py import MPI
+#from mpi4py import MPI
 import unittest
-
-
-GET_BOX
-request: ('GET_BOX', id)
-reply: ('GET_BOX', box)
-
-GET_SIZE
-request: ('GET_SIZE', id)
-reply: ('GET_SIZE', n_workers)
-
-GET_PUCK
-request: ('GET_PUCK', n, id)
-reply: ('GET_PUCK', puck)
-
-SET_NAME
-request: ('SET_NAME', name, secret, id)
-reply: ('SET_NAME', name)
-
-SET_ACCELERATION
-request: ('SET_ACCELERATION', a, secret, id)
-reply: ('SET_ACCELERATION', a)
-
 
 
 V_MIN =  10.0
@@ -80,7 +58,25 @@ class Puck:
 
     def get_points(self):
         return self.points
-        
+
+
+def insertionSort_t_ca(l2):
+    m = len(l2)
+    if m <= 1:
+        return l2
+    
+    for i in range(1, m):
+        key = l2[i]
+        j = i - 1
+        while j >= 0 and key < l2[j]:
+            l2[j + 1] = l2[j]
+            j -= 1
+        l2[j + 1] = key
+    return l2
+
+
+
+
 def worker_arda(id, secret, q_request, q_reply):
     #Namen setzen
     q_request.put(('SET_NAME', 'Arda', secret, id))
@@ -90,22 +86,39 @@ def worker_arda(id, secret, q_request, q_reply):
     reply_y = q_reply.get()
     N = reply_y[1]
     #for n in range(0, N): 
-    q_request.put(('GET_PUCK', n, id))
-    reply_puck = q_reply.get()
-    puck_z = reply_puck[1]
-    if puck_y.get_id() == id:
-        meine_nummer = n
-        break #n ist id
+    #q_request.put(('GET_PUCK', n, id))
+    #reply_puck = q_reply.get()
+    #puck_z = reply_puck[1]
+    #if puck_y.get_id() == id:
+     #   meine_nummer = n
+      #      break #n ist id
 
+    
+    
+    #Boxgrenzen anfragen
+    q_request.put(('GET BOX', id))
+    box_grenzen = q_reply.get(('GET_BOX', box))
+    box_x = box.get_x_limits()
+    xmin = x_coordinate[0]
+    xmax = x_coordinate[1]
+    box_y = box.get_y_limits()
+    ymin = y_coordinate[0]
+    ymax = y_coordinate[1]
+    
+    
+    
     while True:
         R = 1
-        l1 =[]
+        l1 = []
         l1.clear()
+        l2 = []
+        l2.clear()
         q_request.put(('GET_PUCK', meine_nummer, id))
         mein_puck = q_reply.get()[1]
         meine_position = mein_puck.get_position()
         meine_geschwindikeit = mein_puck.get_velocity()
         meine_beschleunigung = mein_puck.get_acceleration()
+        #print sortierte_liste
         
         for i in range(0, N):
             q_request.put(('GET_PUCK', i, id))
@@ -119,169 +132,35 @@ def worker_arda(id, secret, q_request, q_reply):
                 a = A_MAX
             if t_ca >= 0 or np.linalg.norm(r_ca) >= 10:
                 l1.append((t_ca, r_ca, a))
-                l1.sorted((l1, key_t = lambda item: item[0]))
-
-#geschwindigkeitskontrolle            
-#mit node sortieren; die pucks, die am relevantesten/ gefährlichsten sind           #node oder sort()
-class Node:
-    def __init__(self, key, value):
-        self.next = None
-        self.key = key
-        self.value = value
-
-    def __str__(self):
-        return f"Node[{self.key}]={self.value}"
-    
-    def retrieve(self, key):
-        node = self.kleinster_abstand
-        while node.next != None:
-            node = node.next
-            if node.key == key:
-                return node.value
-            raise KeyError
-
-    def insert(self, key_loc, key, value):
-        new_node = Node(key, value)
-        if key_loc == None:
-            new_node.next = self.kleinster_abstand
-            self.kleinster_abstand = new_node
-            return
-
-        node = self.kleinster_abstand
-        while node.next != None:
-            node = node.next
-            if node.key == key_loc:
-                new_node.next = node.next
-                node.next = new_node
-                return
-            raise KeyError
-
-    q_request.put(('GET_PUCK', meine_nummer, id))
-            mein_puck_a = q_reply.get()[1]
-            v_geschwindikeit = mein_puck_a.get_velocity()
-    a_beschleunigung = 10 * v_geschwindigkeit / np.linalg.norm(v_geschwindigkeit) 
-    if v_puck == V_MIN + 5:
-        q_request.put(('SET_ACCELERATION', a_beschleunigung, secret, id))
-        reply_a = q_reply.get()
-    if v_puck == V_MAX - 5:       
-        q_request.put(('SET_ACCELERATION', - a_beschleunigung, secret, id))
-        reply_aa = q_reply.get()
-    q_request.put(('SET_ACCELERATION', np.array(0), secret, id))
-    reply_aaa = q_reply.get()
-            
-
-
-
-
-
-    if mein_puck.is_alive():
-                    return True
+                l2.append(t_ca)
+        sortierte_liste = insertionSort_t_ca(l2)
+        for j in range(len(l1)):
+            if sortierte_liste[0] == l1[j][0]:
+                sortierte_beschleunigung = - (l1[j][1] / np.linalg.norm(l1[j][1])) * l1[j][2])
+        q_request.put(('SET_ACCELERATION', sortierte_beschleunigung, secret, id))
+        reply_sortierte_beschleunigung = q_reply.get()
+        print(f"{sortierte_beschleunigung} von puck {id}")
+                
+      
+        #Geschwindigkeitskontrolle
+        q_request.put(('GET_PUCK', meine_nummer, id))
+        mein_puck_a = q_reply.get()[1]
+        v_geschwindikeit = mein_puck_a.get_velocity()
+        a_beschleunigung = 10 * v_geschwindigkeit / np.linalg.norm(v_geschwindigkeit) 
+        if v_puck == V_MIN + 5:
+            q_request.put(('SET_ACCELERATION', a_beschleunigung, secret, id))
+            reply_a = q_reply.get()
+        if v_puck == V_MAX - 5:       
+            q_request.put(('SET_ACCELERATION', - a_beschleunigung, secret, id))
+            reply_aa = q_reply.get()
+        q_request.put(('SET_ACCELERATION', np.array(0,0), secret, id))
+        reply_aaa = q_reply.get()
+        
+        if mein_puck_a.is_alive() == False:
+            break
+                
+        #gas #gebremst
         
     
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     
-    #Boxgrenzen anfragen
-    q_request.put(('GET BOX', id))
-    box_grenzen = q_reply.get(('GET_BOX', box))
-    box_x = box.get_x_limits()
-    xmin = x_coordinate[0]
-    xmax = x_coordinate[1]
-    box_y = box.get_y_limits()
-    ymin = y_coordinate[0]
-    ymax = y_coordinate[1]
-    
-    q_request.put(('SET_ACCELERATION', a, secret, id)):
-    reply_a = q_reply.get()
-    a_vector = reply_a[1]
-    if a_vector is None:
-        raise Error
-    
-        
-
-#velocity        
-#accileration
-#important pucks
-#worker endless loop
-#prioritization
-
-#beschleunigung reseten
-
-
-r = route
-d = distance
-#d = r2-r1
-v = velocity
-a = acceleration
-t = time
-#r1_vector = numpy.array(r1 +  v1 * t)
-#r2_vector = numpy.array(r2 +  v2 * t)
-betrag_v = math.sqrt(x**2 + y**2)
-v_puck:
-reply = q_reply.get_velocity()
-
-r1 = np.array([1, 1])
-r2 = np.array([0,0])
-d**2(r1, r2) = (r2-r1 + v2-v1 * t)**2
-#(np.diff(d**2 (r1, r2)) = 0)
-t= - ((andere_position - meine_position) * (andere_geschwindigkeit - meine_geschwindigkeit)/ (andere_geschwindigkeit - meine_geschwindigkeit)**2)
-if dot(r1_vector, r2_vector) == 0:
-    return True
-(andere_geschwindigkeit-meine_geschwindigkeit) = a * (t2-t1)
-
-v_puck
-
-
-    
-if puck is is_alive():
-    return True
-else:
-    return False
-get_id()
-get_time()
-get_position()
-get_velocity()
-get_acceleration()
-get_fuel()
-get_name()
-get_points()
-#Radius bei Reflexion mitberücksichtigen
-
-
-if v_puck in range(V_MIN, V_MAX):
-    return True and q_reply.get_velocity()
-else:
-    return False
-
-for vector_distance
-
-
-#nicht existieren;  puck = None
-
-    
-
-    
-        
-#s = MPI.Status()
-#while True
-#get_position
-
-unittest.main()
