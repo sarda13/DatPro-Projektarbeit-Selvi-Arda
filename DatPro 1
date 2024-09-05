@@ -60,7 +60,7 @@ class Puck:
         return self.points
 
 
-def insertionSort_t_ca(l2):
+def insertionSort_t_ca(l2): #Nachdem eine Liste mit sortierten Tupeln erstellt wurde, soll daraus die Beschleunigung entnommen werden, die für das Ausweichen relevant ist. Allerdings ist das Element, nach dem sortiert wird, trotzdem t_ca (time of closest approach).
     m = len(l2)
     if m <= 1:
         return l2
@@ -102,10 +102,10 @@ def worker_arda(id, secret, q_request, q_reply):
     
     
     while True:
-        R = 1
-        l1 = []
+        R = 1 #Radius
+        l1 = [] #Liste der Tupel bestehend aus t_ca, r_ca sowie a
         l1.clear()
-        l2 = []
+        l2 = [] #Liste dafür, dass nur aus dem ersten Tupel die Beschleunigung zum Ausweichen entnommen wrd 
         l2.clear()
         q_request.put(('GET_PUCK', meine_nummer, id))
         mein_puck = q_reply.get()[1]
@@ -147,13 +147,17 @@ def worker_arda(id, secret, q_request, q_reply):
         if v_puck == V_MAX - 5:       
             q_request.put(('SET_ACCELERATION', - a_beschleunigung, secret, id))
             reply_aa = q_reply.get()
-        q_request.put(('SET_ACCELERATION', np.array(0,0), secret, id))
+        q_request.put(('SET_ACCELERATION', np.array([0,0]), secret, id))
         reply_aaa = q_reply.get()
+        
+        #Gas geben
+        
+        
+        #Bremsen
         
         if mein_puck_a.is_alive() == False:
             break
                 
-        #gas #gebremst
         
     
     
