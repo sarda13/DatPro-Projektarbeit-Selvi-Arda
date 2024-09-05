@@ -85,19 +85,25 @@ def worker_arda(id, secret, q_request, q_reply):
     q_request.put(('GET_SIZE', id))
     reply_size = q_reply.get()
     N = reply_size[1]
-    
+    for n in range(0, N): 
+        q_request.put(('GET_PUCK', n, id))
+        reply_puck = q_reply.get()
+        puck_z = reply_puck[1]
+        if puck_z.get_id() == id:
+            meine_nummer = n
+            break #n ist id
 
     
     
     #Boxgrenzen anfragen
-    q_request.put(('GET_BOX', id))
-    box_grenzen = q_reply.get(('GET_BOX', box))
-    box_x = box.get_x_limits()
-    xmin = x_coordinate[0]
-    xmax = x_coordinate[1]
-    box_y = box.get_y_limits()
-    ymin = y_coordinate[0]
-    ymax = y_coordinate[1]
+    #q_request.put(('GET_BOX', id))
+    #box_grenzen = q_reply.get(('GET_BOX', box))
+    #box_x = box.get_x_limits()
+    #xmin = x_coordinate[0]
+    #xmax = x_coordinate[1]
+    #box_y = box.get_y_limits()
+    #ymin = y_coordinate[0]
+    #ymax = y_coordinate[1]
     
     
     
@@ -110,7 +116,7 @@ def worker_arda(id, secret, q_request, q_reply):
         q_request.put(('GET_PUCK', meine_nummer, id))
         mein_puck = q_reply.get()[1]
         meine_position = mein_puck.get_position()
-        meine_geschwindikeit = mein_puck.get_velocity()
+        meine_geschwindigkeit = mein_puck.get_velocity()
         meine_beschleunigung = mein_puck.get_acceleration()
         #print sortierte_liste
         
@@ -130,13 +136,13 @@ def worker_arda(id, secret, q_request, q_reply):
         sortierte_liste = insertionSort_t_ca(l2)
         for j in range(len(l1)):
             if sortierte_liste[0] == l1[j][0]:
-                sortierte_beschleunigung = - (l1[j][1] / np.linalg.norm(l1[j][1])) * l1([j][2])
+                sortierte_beschleunigung = - (l1([j][1]) / np.linalg.norm(l1[j][1])) * l1([j][2])
         q_request.put(('SET_ACCELERATION', sortierte_beschleunigung, secret, id))
         reply_sortierte_beschleunigung = q_reply.get()
         print(f"{sortierte_beschleunigung} von puck {id}")
                 
       
-        #Geschwindigkeitskontrolle
+        #Geschwindigkeitskontrolle; Gasgeben und Bremsen
         q_request.put(('GET_PUCK', meine_nummer, id))
         mein_puck_a = q_reply.get()[1]
         v_geschwindikeit = mein_puck_a.get_velocity()
@@ -150,15 +156,7 @@ def worker_arda(id, secret, q_request, q_reply):
         q_request.put(('SET_ACCELERATION', np.array([0,0]), secret, id))
         reply_aaa = q_reply.get()
         
-        #Gas geben
         
-        
-        #Bremsen
         
         if mein_puck_a.is_alive() == False:
             break
-                
-        
-    
-    
-    
