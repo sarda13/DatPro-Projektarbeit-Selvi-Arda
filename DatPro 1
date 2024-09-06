@@ -85,13 +85,9 @@ def worker_arda(id, secret, q_request, q_reply):
     q_request.put(('GET_SIZE', id))
     reply_size = q_reply.get()
     N = reply_size[1]
-    for n in range(0, N): 
-        q_request.put(('GET_PUCK', n, id))
-        reply_puck = q_reply.get()
-        puck_z = reply_puck[1]
-        if puck_z.get_id() == id:
-            meine_nummer = n
-            break #n ist id
+    q_request.put(('GET_PUCK', n, id))
+    reply_puck = q_reply.get()
+    puck_p = reply_puck[1]
 
     
     
@@ -113,13 +109,14 @@ def worker_arda(id, secret, q_request, q_reply):
         l1.clear()
         l2 = [] #Liste dafür, dass nur aus dem ersten Tupel die Beschleunigung zum Ausweichen entnommen wrd 
         l2.clear()
-        q_request.put(('GET_PUCK', meine_nummer, id))
+        q_request.put(('GET_PUCK', meine_nummer, id)) #Definieren der relevanten Eigenschften meines Pucks
         mein_puck = q_reply.get()[1]
         meine_position = mein_puck.get_position()
         meine_geschwindigkeit = mein_puck.get_velocity()
         meine_beschleunigung = mein_puck.get_acceleration()
         #print sortierte_liste
         
+        #Vergleich der Eigenschaften meines Pucks mit denen eines anderen Pucks in unmittelbarer Nähe; insbesondere Ausweichung
         for i in range(0, N):
             q_request.put(('GET_PUCK', i, id))
             anderer_puck = q_reply.get()[1]
@@ -147,10 +144,10 @@ def worker_arda(id, secret, q_request, q_reply):
         mein_puck_a = q_reply.get()[1]
         v_geschwindikeit = mein_puck_a.get_velocity()
         a_beschleunigung = 10 * v_geschwindigkeit / np.linalg.norm(v_geschwindigkeit) 
-        if v_puck == V_MIN + 5:
+        if v_puck <= V_MIN + 5:
             q_request.put(('SET_ACCELERATION', a_beschleunigung, secret, id))
             reply_a = q_reply.get()
-        if v_puck == V_MAX - 5:       
+        if v_puck >= V_MAX - 5:       
             q_request.put(('SET_ACCELERATION', - a_beschleunigung, secret, id))
             reply_aa = q_reply.get()
         q_request.put(('SET_ACCELERATION', np.array([0,0]), secret, id))
