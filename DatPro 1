@@ -60,7 +60,7 @@ class Puck:
         return self.points
 
 
-def insertionSort_t_ca(l2): #Nachdem eine Liste mit sortierten Tupeln erstellt wurde, soll daraus die Beschleunigung entnommen werden, die für das Ausweichen relevant ist. Allerdings ist das Element, nach dem sortiert wird, trotzdem t_ca (time of closest approach).
+def insertionSort_t_ca(l2): #Nachdem eine Liste mit sortierten Tupeln erstellt wurde, soll daraus die Beschleunigung entnommen werden, die für das Ausweichen relevant ist. Allerdings ist das Element, nach dem sortiert wird, trotzdem t_ca (time of closest approach). Die restlichen Elemente der Liste werden hinter dem neu eingefügten Wert verschoben.
     m = len(l2)
     if m <= 1:
         return l2
@@ -87,7 +87,7 @@ def worker_arda(id, secret, q_request, q_reply):
     N = reply_size[1]
     q_request.put(('GET_PUCK', n, id))
     reply_puck = q_reply.get()
-    puck_p = reply_puck[1]
+    puck_p = reply_puck[1] #später: Puck mit Nummer 'meine_nummer'
 
     
     
@@ -105,9 +105,9 @@ def worker_arda(id, secret, q_request, q_reply):
     
     while True:
         R = 1 #Radius
-        l1 = [] #Liste der Tupel bestehend aus t_ca, r_ca sowie a
+        l1 = [] #Liste der Tupel bestehend aus t_ca (time of clostest approach), r_ca (distance of clostest approach )sowie a (benötigte Beschleunigung zum Ausweichen)
         l1.clear()
-        l2 = [] #Liste dafür, dass nur aus dem ersten Tupel die Beschleunigung zum Ausweichen entnommen wrd 
+        l2 = [] #Liste dafür, dass nur aus dem ersten Tupel die Beschleunigung zum Ausweichen entnommen wird 
         l2.clear()
         q_request.put(('GET_PUCK', meine_nummer, id)) #Definieren der relevanten Eigenschften meines Pucks
         mein_puck = q_reply.get()[1]
@@ -123,11 +123,11 @@ def worker_arda(id, secret, q_request, q_reply):
             andere_position = anderer_puck.get_position()
             andere_geschwindigkeit = anderer_puck.get_velocity()
             t_ca = - np.dot((andere_position - meine_position) , (andere_geschwindigkeit - meine_geschwindigkeit))/ np.dot((andere_geschwindigkeit - meine_geschwindigkeit), (andere_geschwindigkeit - meine_geschwindigkeit))
-            r_ca = (andere_position - meine_position) - (andere_geschwindigkeit - meine_geschwindigkeit) * (t_ca) #vektor
+            r_ca = (andere_position - meine_position) - (andere_geschwindigkeit - meine_geschwindigkeit) * (t_ca) #vektoriell
             a = 2 * (2*R - np.linalg.norm(r_ca)) / (t_ca * t_ca) #skalar
             if a >= A_MAX:
                 a = A_MAX
-            if t_ca >= 0 or np.linalg.norm(r_ca) >= 10:
+            if t_ca >= 0 or np.linalg.norm(r_ca) >= 10: #nur Betrachtung positiver Zeitpunkte sowie der Pucks in unmittelbarer Nähe (Annahmebereich)
                 l1.append((t_ca, r_ca, a))
                 l2.append(t_ca)
         sortierte_liste = insertionSort_t_ca(l2)
@@ -139,7 +139,7 @@ def worker_arda(id, secret, q_request, q_reply):
         print(f"{sortierte_beschleunigung} von puck {id}")
                 
       
-        #Geschwindigkeitskontrolle; Gasgeben und Bremsen
+        #Geschwindigkeitsanpassung zum Gasgeben und Bremsen
         q_request.put(('GET_PUCK', meine_nummer, id))
         mein_puck_a = q_reply.get()[1]
         v_geschwindikeit = mein_puck_a.get_velocity()
@@ -154,6 +154,6 @@ def worker_arda(id, secret, q_request, q_reply):
         reply_aaa = q_reply.get()
         
         
-        
+        #Beendet die Schleife, sobald mein Puck nicht mehr existiert.
         if mein_puck_a.is_alive() == False:
             break
