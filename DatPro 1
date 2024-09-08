@@ -105,7 +105,7 @@ def worker_arda(id, secret, q_request, q_reply):
     
     while True:
         R = 1 #Radius
-        l1 = [] #Liste der Tupel bestehend aus t_ca (time of clostest approach), r_ca (distance of clostest approach )sowie a (benötigte Beschleunigung zum Ausweichen)
+        l1 = [] #Liste der Tupel bestehend aus t_ca (time of clostest approach), r_ca (distance of clostest approach ) sowie a (benötigte Beschleunigung zum Ausweichen)
         l1.clear()
         l2 = [] #Liste dafür, dass nur aus dem ersten Tupel die Beschleunigung zum Ausweichen entnommen wird 
         l2.clear()
@@ -139,7 +139,7 @@ def worker_arda(id, secret, q_request, q_reply):
         print(f"{sortierte_beschleunigung} von puck {id}")
                 
       
-        #Geschwindigkeitsanpassung zum Gasgeben und Bremsen
+        #Geschwindigkeitskontrolle; Gasgeben und Bremsen
         q_request.put(('GET_PUCK', meine_nummer, id))
         mein_puck_a = q_reply.get()[1]
         v_geschwindikeit = mein_puck_a.get_velocity()
